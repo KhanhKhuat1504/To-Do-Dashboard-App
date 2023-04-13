@@ -1,0 +1,122 @@
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <!-- Vuetify CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <!-- Material Design Icons CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+</head>
+<div id="app">
+  <v-app>
+    <div>
+      <!-- Banner bar -->
+      <v-app-bar color="primary" dark>
+        <v-spacer></v-spacer>
+        <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        <v-toolbar-title>FRAMEWORKS</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <!-- When user clicks the add button, a dialog appears -->
+        <v-dialog v-model="dialog" persistent max-width="450px">
+          <template v-slot:activator="{on, attrs}">
+            <!-- Add button -->
+            <v-btn color="primary" dark v-bind="attrs" v-on="on" @click="addButton">
+              <v-icon dark>mdi-plus-circle</v-icon>
+              <strong>Add</strong>
+            </v-btn>
+      </v-app-bar>
+      </template>
+      <!-- Create a form on dialog -->
+      <v-form ref="form" @submit.prevent="submit">
+        <!-- Header -->
+        <v-card id="dialogBar">
+          <v-toolbar color="primary" dark id="dialogBar">
+            <!-- Dynamically changes icon -->
+            <v-icon dense dark :class='iconClass'>{{ iconText }}</v-icon>
+            <v-toolbar-title><strong> {{ formTitle }} </strong></v-toolbar-title>
+          </v-toolbar>
+          <v-card-text>
+            <v-container>
+              <!-- First row: Title textbox -->
+              <v-row>
+                <v-text-field ref="editedItem.title" v-model.lazy="editedItem.title" outlined required :rules="[rules.requiredTitle, rules.uniqueTitle]" :error-messages="errorMessagesTitle" label="Title" v-on:click="titleSubmit" v-on:keyup="validateUniqueTitle" v-if="!(dialogPrimaryButtonTitle === 'Edit')" isHidden="false"></v-text-field>
+              </v-row>
+              <!-- Second row: Description textbox -->
+              <v-row>
+                <v-text-field ref="editedItem.description" v-model.lazy="editedItem.description" label="Description" :rules="[rules.requiredDescription]" :error-messages="errorMessages" outlined required v-on:click="descriptSubmit" v-on:keyup="descriptSubmit"></v-text-field>
+              </v-row>
+              <!-- Third row: Deadline date picker -->
+              <v-row>
+                <v-menu ref="menu1" v-model="menu1" :close-on-content-click="false" transition="scale-transition" offset-y min-width="auto">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field label="Deadline" readonly outlined v-model="dateFormatted" v-bind="attrs" v-on="on" append-icon="mdi-calendar">
+                    </v-text-field>
+                  </template>
+                  <v-date-picker v-model="date" @input="menu1 = false" scrollable no-title>
+                  </v-date-picker>
+                </v-menu>
+              </v-row>
+              <!-- Fourth row: Priority label -->
+              <v-row>
+                <div>Priority</div>
+              </v-row>
+              <!-- Fifth row: Low, Medium, High radio buttons -->
+              <v-row>
+                <v-radio-group v-model="editedItem.priority" row>
+                  <v-radio label="Low" value="low"></v-radio>
+                  <v-radio label="Medium" value="med"></v-radio>
+                  <v-radio label="High" value="high"></v-radio>
+                </v-radio-group>
+              </v-row>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <!-- Footer: Add/Edit and Cancel button -->
+            <v-row>
+              <v-spacer></v-spacer>
+              <v-col cols="5">
+                <!-- Add button -->
+                <v-btn block color="primary" @click="save" dark>
+                  <v-icon small dense dark :class='iconClass'>{{ iconText }}</v-icon>
+                  <strong class="ma-2"> {{dialogPrimaryButtonTitle}} </strong>
+                </v-btn>
+              </v-col>
+              <!-- Cancel button -->
+              <v-col cols="5">
+                <v-btn block color="red" dark @click="close">
+                  <v-icon small dense dark>mdi-close-circle</v-icon>
+                  <strong class="ma-1">Cancel</strong>
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-actions>
+        </v-card>
+      </v-form>
+      </v-dialog>
+    </div>
+    <!-- Table -->
+    <!-- Initial headers of the table -->
+    <v-data-table :headers="headers" :items="tasks" hide-default-footer>
+      <!-- Remove 'no data available' slot -->
+      <template slot="no-data" class="noData">
+        <tr style="display:none;" />
+      </template>
+      <!-- Add checkboxes to Is Complete column -->
+      <template v-slot:item.is_complete="{item}" right>
+        <input type="checkbox" @click="onChangeCheck(item)"> </input>
+      </template>
+      <!-- Define action buttons -->
+      <template v-slot:item.action="{item}" left-justify>
+        <div class="d-flex flex-md-column ma-1 align-center">
+          <!-- Update button -->
+          <v-btn class="mt-3" color="primary" @click="updateItem(item)" dark v-if="!item.is_complete === true" isHidden="true" small>
+            <v-icon small dense dark>mdi-note-edit</v-icon>Update
+          </v-btn>
+          <!-- Delete button -->
+          <v-btn class="mb-3" color="red" @click="deleteItem(item)" dark small>
+            <v-icon small dense dark>mdi-close-circle</v-icon>Delete
+          </v-btn>
+        </div>
+      </template>
+    </v-data-table>
+  </v-app>
+</div>
